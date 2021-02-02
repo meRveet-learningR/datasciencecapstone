@@ -1,0 +1,149 @@
+---
+title: "Milestone Report"
+author: "MT"
+date: "2/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, cache = T)
+```
+
+# Swiftkey Dataset from Twitter, Blogs and News.
+The source code can be found [here]() in the Milestone.Rmd. The codes will not be displayed to keep the report concise.
+
+## File size of the raw and sample dataset
+The raw dataset were sampled by using bionomial distribution with seed set at 1.
+Only 1% of each dataset was used for this project for efficiency sake. 
+
+```{r, echo=FALSE}
+#Reading of Datasets and Storing into Varibles
+blog<- readLines("final/en_US/en_US.blogs.txt", encoding="UTF-8", skipNul = T)
+news<- readLines("final/en_US/en_US.news.txt", encoding="UTF-8", skipNul = T)
+twitter<- readLines("final/en_US/en_US.twitter.txt", encoding="UTF-8", skipNul = T)
+
+#Determining the filesize in mb
+blogsize<- file.info("final/en_US/en_US.blogs.txt")$size/1024^2
+newssize<- file.info("final/en_US/en_US.news.txt")$size/1024^2
+twittersize<- file.info("final/en_US/en_US.twitter.txt")$size/1024^2
+
+#Length of each raw dataset
+bloglen<- length(blog)
+newslen<- length(news)
+twitterlen<- length(twitter)
+
+#Word count for each sample source
+library(stringi)
+blogct<- stri_count_words(blog)
+newsct<- stri_count_words(news)
+twitterct<- stri_count_words(twitter)     
+
+#Data Table Summary of all the datasets
+rawsummary<- data.frame(source= c("blog","news","twitter"), 
+                        filesizemb= c(blogsize, newssize, twittersize), 
+                        totallines= c(bloglen, newslen, twitterlen), 
+                        totalwords= c(sum(blogct), sum(newsct), sum(twitterct)))
+
+rawsummary
+
+#Functions is made to produce sample data set
+# data<- source of raw data, #percent<- percentage of data to be used.
+#Picking samples out of the dataset using Binomial sampling methods
+#For assignment purpose, only 1% of the dataset is used to reduce calculation time required
+# 1% of each data set would be approximately 1-2mb in size. 
+samselection<- function(data, percent){
+        set.seed(1)
+        return(data[as.logical(rbinom(length(data), 1, percent))])
+}
+#Storing dataset in varibles and writing them into csv text files
+blogsam<- samselection(blog, 0.01)
+newssam<- samselection(news, 0.01)        
+twittersam<- samselection(twitter, 0.01)
+
+dir.create("sample", showWarnings = F)
+write(blogsam, "sample/blogsam.txt")
+write(newssam, "sample/newssam.txt")
+write(twittersam, "sample/twittersam.txt")
+
+#Determining the filesize in mb
+blogsamsize<- file.info("sample/blogsam.txt")$size/1024^2
+newssamsize<- file.info("sample/newssam.txt")$size/1024^2
+twittersamsize<- file.info("sample/twittersam.txt")$size/1024^2
+
+#Length of samples
+bloglen<- length(blogsam)
+newslen<- length(newssam)
+twitterlen<- length(twittersam)
+
+#Word count for each sample source
+blogct<- stri_count_words(blogsam)
+newsct<- stri_count_words(newssam)
+twitterct<- stri_count_words(twittersam)        
+
+rm(blog, twitter, news, blogsize, twittersize, newssize)
+
+#Data Table Summary of all the samples
+samsummary<- data.frame(source= c("blogsam","newssam","twittersam"), 
+                        filesizemb= c(blogsamsize, newssamsize, twittersamsize), 
+                        totallines= c(bloglen, newslen, twitterlen),
+                        totalwords= c(sum(blogct), sum(newsct), sum(twitterct)))
+
+#Removal of non-english words from each sample data set
+blogssam <- iconv(blogsam, "latin1", "ASCII", sub="")
+newssam <- iconv(newssam, "latin1", "ASCII", sub="")
+twittersam <- iconv(twittersam, "latin1", "ASCII", sub="")
+
+#Length of samples after removal
+bloglen<- length(blogsam)
+newslen<- length(newssam)
+twitterlen<- length(twittersam)
+
+#Word count for each sample source after removal
+blogct<- stri_count_words(blogsam)
+newsct<- stri_count_words(newssam)
+twitterct<- stri_count_words(twittersam)        
+
+#Data Table Summary of all the samples after removal
+lsamsummary<- data.frame(source= c("blogsam","newssam","twittersam"), 
+                        filesizemb= c(blogsamsize, newssamsize, twittersamsize), 
+                        totallines= c(bloglen, newslen, twitterlen),
+                        totalwords= c(sum(blogct), sum(newsct), sum(twitterct)))
+
+lsamsummary
+```
+##Quanteda to Form and Analyse Corpus
+
+Corpus was created by combining the sample data generated from above. Using quanteda, the text was tokenised by using dfm(). The tokenisation process was adjusted such that it removes (1) stopwords, (2) punctuations, (3) numbers, (4) separators, (5) symbols and (6) any URL.
+
+Stopwords were removed as it was showing up too frequently and exploration of other vocabulary used was more of the key interest. Hence, stopwords was used. However, it might be useful to include it back at later stage of the analysis as work prediction would include stopwords too. 
+
+```{r, echo=FALSE}
+#Creating Corpus and Cleaning up the Corpus Text
+library(quanteda)
+#forming the Corpus by combining all text data
+corp<- corpus(c(blogssam, newssam, twittersam))
+head(summary(corp))
+# Creating DFM and removing stopwords and punctuation. Stopwords were removed to explore the frequency of other words used.
+dt<- dfm(corp,
+         remove = stopwords("english"), 
+         remove_punct=T, 
+         remove_symbols=T, 
+         remove_numbers=T, 
+         remove_separators=T, 
+         remove_url=T)
+head(dt)
+# Storing the frequency data of top 50 words used 
+textfreq<- textstat_frequency(dt,n = 50)
+textfreqordered<- textfreq
+textfreqordered$feature<- with(textfreq, reorder(feature, frequency))
+head(textfreqordered)
+```
+##Plots to View the frequency of top 50 words of the Corpus
+```{r}
+#Plotting frequency plot of the top 50 words used in ascending order
+library(ggplot2)
+ggplot(textfreqordered, aes(x=feature, y=frequency))+geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1))
+```
+
+##Summary
+Looking at the analysis process, stopwords might be included back to explore if it helps with better prediction of the words used. Also looking at the frequency of words used, further analysis can be conducted to determine what are the words that are used after these first set of frequency used words. Looking at the 2-gram feature, it would also help to determine the frequency of the next word hence improving the prediction model at later stage.
