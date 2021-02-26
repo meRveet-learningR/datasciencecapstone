@@ -111,7 +111,7 @@ lsamsummary<- data.frame(source= c("blogsam","newssam","twittersam"),
 
 lsamsummary
 ```
-##Quanteda to Form and Analyse Corpus
+## Quanteda to Form and Analyse Corpus
 
 Corpus was created by combining the sample data generated from above. Using quanteda, the text was tokenised by using dfm(). The tokenisation process was adjusted such that it removes (1) stopwords, (2) punctuations, (3) numbers, (4) separators, (5) symbols and (6) any URL.
 
@@ -138,12 +138,12 @@ textfreqordered<- textfreq
 textfreqordered$feature<- with(textfreq, reorder(feature, frequency))
 head(textfreqordered)
 ```
-##Plots to View the frequency of top 50 words of the Corpus
+## Plots to View the frequency of top 50 words of the Corpus
 ```{r}
 #Plotting frequency plot of the top 50 words used in ascending order
 library(ggplot2)
 ggplot(textfreqordered, aes(x=feature, y=frequency))+geom_point()+theme(axis.text.x=element_text(angle=90,hjust=1))
 ```
 
-##Summary
+## Summary
 Looking at the analysis process, stopwords might be included back to explore if it helps with better prediction of the words used. Also looking at the frequency of words used, further analysis can be conducted to determine what are the words that are used after these first set of frequency used words. Looking at the 2-gram feature, it would also help to determine the frequency of the next word hence improving the prediction model at later stage.
