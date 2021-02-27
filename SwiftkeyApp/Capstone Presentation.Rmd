@@ -1,0 +1,50 @@
+---
+title: "Mock Swiftkey Prediction Capstone"
+author: "MT"
+date: "2/26/2021"
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
+---
+
+```{r setup, include=FALSE, cache=T}
+knitr::opts_chunk$set(echo = FALSE, comment=NA)
+```
+
+## Introduction
+
+Data Science Capstone project requires us to fulfi few components of the porject.
+
+ - Exploring Text Datasets
+ - Explore and create a model for nature language processing
+ - Creating a Shiny app to display the output of our predictor
+ - Creating this presentation to introduce the project and how the  app works.
+
+
+## Exploration of Data
+
+- Datasets were obtain from news, twitter  and blog posts
+- Due to limitations for this project, only  1% of the data is randomly selected
+- The 1% is than  processed and splited into training, test, and holding set. 
+- Models were created from the training set, validated  to function on the holding set, before generating the  test results. 
+
+## Data Cleaning
+
+- Each of the data sets were cleaned and remove words or symbols that may not helpful to generate the ngrams
+- Quanteda packaged was used along with other packages to tidy up the data
+- Ngrams of two, three, four and five were generated in this project
+
+## Results of the test set
+- According to one of the resources perplexity is used to assess the effectiveness of the model. With lower values to be better.
+
+
+```{r cars, echo = F}
+library(data.table)
+x<- data.table(model=c("Bigram", "Trigram", "Fourgram", "Fivegram"), perplexity=c("66.09", "8.87", "1.05", "0.28"))
+x
+```
+
+## Limitations
+- Only single model is applied here due to time constraint
+- Other NLP models should be explored to validate the accuracy of current model used.
+
